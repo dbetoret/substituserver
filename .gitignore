@@ -1,3 +1,5 @@
 *.sqlite3
 substituserver/secret/
 staticfiles/
+absencies/__pycache__/
+substituserver/__pycache__/
