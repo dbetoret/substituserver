@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 #     with open('./substituserver/secret/secret_key.txt') as f:
 #         SECRET_KEY = f.read().strip()
 
-SECRET_KEY = os.environ['SECRET_KEY']
+SECRET_KEY = os.environ.get('SECRET_KEY', "default_value")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
