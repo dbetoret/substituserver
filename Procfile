@@ -1,1 +1,1 @@
-web: gunicorn substituserver.wsgi.application
+web: gunicorn substituserver.wsgi
