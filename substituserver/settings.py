@@ -43,7 +43,7 @@ if IS_HEROKU:
 else:
     ALLOWED_HOSTS = []
 
-if not IS_HEROKU:
+if IS_HEROKU:
     DEBUG = True
 
 CSRF_TRUSTED_ORIGINS = ['http://localhost:*']
