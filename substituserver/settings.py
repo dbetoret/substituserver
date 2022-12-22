@@ -12,11 +12,13 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 from pathlib import Path
 import os
+import dj_database_url
 # import dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-STATIC_ROOT = './static_files'
+
+IS_HEROKU = "DYNO" in os.environ
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
@@ -26,17 +28,23 @@ STATIC_ROOT = './static_files'
 #     with open('./substituserver/secret/secret_key.txt') as f:
 #         SECRET_KEY = f.read().strip()
 
-SECRET_KEY = os.environ.get('SECRET_KEY', "default_value")
+SECRET_KEY = os.environ['SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
 
 # PRODUCTION VARIABLES
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
 SECURE_SSL_REDIRECT = True
 
-ALLOWED_HOSTS = ['eimtcms.eimt.uoc.edu:55000']
+if IS_HEROKU:
+    ALLOWED_HOSTS = ['*']
+else:
+    ALLOWED_HOSTS = []
+
+if not IS_HEROKU:
+    DEBUG = True
+
 CSRF_TRUSTED_ORIGINS = ['https://*']
 
 
@@ -140,6 +148,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
