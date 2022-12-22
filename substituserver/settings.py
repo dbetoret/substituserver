@@ -39,7 +39,7 @@ SESSION_COOKIE_SECURE = False
 SECURE_SSL_REDIRECT = False
 
 if IS_HEROKU:
-    ALLOWED_HOSTS = ['http://localhost:*', 'http://substitueixme.herokuapp.com', 'http://substitueixme.herokuapp.com']
+    ALLOWED_HOSTS = ['localhost', 'substitueixme.herokuapp.com']
 else:
     ALLOWED_HOSTS = []
 
