@@ -1,4 +1,3 @@
 *.sqlite3
 substituserver/secret/
-static_files/
 staticfiles/

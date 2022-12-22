@@ -33,19 +33,20 @@ SECRET_KEY = os.environ['SECRET_KEY']
 # SECURITY WARNING: don't run with debug turned on in production!
 
 # PRODUCTION VARIABLES
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
-SECURE_SSL_REDIRECT = True
+
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = False
+SECURE_SSL_REDIRECT = False
 
 if IS_HEROKU:
-    ALLOWED_HOSTS = ['*']
+    ALLOWED_HOSTS = ['http://localhost:8000']
 else:
     ALLOWED_HOSTS = []
 
 if not IS_HEROKU:
     DEBUG = True
 
-CSRF_TRUSTED_ORIGINS = ['https://*']
+CSRF_TRUSTED_ORIGINS = ['http://localhost:*']
 
 
 # Application definition
@@ -63,7 +64,6 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-   # 'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -71,7 +71,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-]
+# 'whitenoise.middleware.WhiteNoiseMiddleware',
+   ]
 
 ROOT_URLCONF = 'substituserver.urls'
 

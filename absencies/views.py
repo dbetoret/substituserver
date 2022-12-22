@@ -243,7 +243,7 @@ def updateGrups(request):
 
 @csrf_exempt
 def updateEspais(request):
-    print (' Petició del usuari: ',request.headers['Authorization'])
+    print (' Petició despais del usuari: ',request.headers['Authorization'])
     vput = json.loads(request.body)
     # print (str(gput))
     centre = Centre.objects.get(id = 1)
@@ -272,7 +272,7 @@ def updateEspais(request):
 def updateMateries(request):
     print (' Petició del usuari: ',request.headers['Authorization'])
     vput = json.loads(request.body)
-    # print (str(gput))
+    print (str(vput))
     centre = Centre.objects.get(id = 1)
     meus_elem = Materia.objects.filter(centre_id = 1)
     for g in vput:
