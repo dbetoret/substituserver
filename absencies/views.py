@@ -174,14 +174,32 @@ def putAbsencia(request):
     # o professors assignats o guàrdies fetes.
 
     (to_insert, to_delete) = inserta_guardies(a_bd.id)
+    print('to_insert ', to_insert)
+    print('to_delete', to_delete)
 
     return JsonResponse({'id': a_bd.id, 'to_insert': to_insert, 'to_delete': to_delete }, safe=False, content_type='application/json')
 
 @csrf_exempt
 def guards(request):
-    print (' Petició del usuari: ',request.headers['Authorization'])
+    print (' Petició de guardies del usuari: ',request.headers['Authorization'], ' per ', request.method)
     guardies = []
     if request.method == 'GET':
+        ### GUÀRDIES DE L'USUARI PER CAUSA D'UNA ABSÈNCIA
+        for g in Guardia.objects.filter(absencia__usuari_id=request.headers['Authorization']):
+            guardies.append({
+                'data': g.data.strftime("%Y-%m-%d"),
+                'dia': str(g.horari.hora.dia_setmana),
+                'hora': str(g.horari.hora.hinici),
+                'id_professor': g.horari.usuari_id,
+                'professor': g.horari.usuari.nom,
+                'espai': g.horari.espai.codi_aula,
+                'grup': g.horari.grup.grup,
+                'materia': g.horari.materia.materia,
+                'es_guardia': g.horari.es_guardia,
+                'substitut': g.substitut,
+                'feina': g.feina
+            })
+        ### GUÀRDIES A COBRIR PER L'USUARI
         # hg: hores en les que l'usuari té guàrdia.
         # g: guàrdies del centre que coincideixen amb l'hora de guàrdia hg.
         for hg in Horari.objects.filter(usuari_id=request.headers['Authorization'], es_guardia=True):
@@ -192,6 +210,7 @@ def guards(request):
                     'data': g.data.strftime("%Y-%m-%d"),
                     'dia': str(hg.hora.dia_setmana),
                     'hora': str(hg.hora.hinici),
+                    'id_professor': g.horari.usuari_id,
                     'professor': g.horari.usuari.nom,
                     'espai': g.horari.espai.codi_aula,
                     'grup': g.horari.grup.grup,
@@ -345,6 +364,7 @@ def inserta_absència(usuari ):
     pass
 
 def inserta_guardies(abs_id):
+    print('inici insertagaurdies per a guardia  ', abs_id)
     to_insert = {}
     to_delete = [] # llista de id_guardia a eliminar
     dies_setmana = ['DL','DM','DC','DJ','DV','DS','DG']
@@ -353,6 +373,7 @@ def inserta_guardies(abs_id):
     les_que_hi_ha = {}
     for g in guardies:
         les_que_hi_ha[g.data.strftime("%Y-%m-%d")+str(g.horari_id)] = False
+    print ('les guardies que hi ha ', les_que_hi_ha)
     # Comprovem les que deuria haver. Si ja estàn, les marquem "true"
     # Si no estan, les insertem.
     abs = Absencia.objects.filter(id = abs_id)[0]
@@ -360,16 +381,21 @@ def inserta_guardies(abs_id):
         return
     for delta in range((abs.data_fi-abs.data).days+1):
         d = abs.data+timedelta(days=delta)
+        print ('dia ', d)
         for h in Horari.objects.filter(hora__dia_setmana=dies_setmana[d.weekday()], usuari=abs.usuari, es_guardia=False ):
+            print ('horari: ', h)
             if str(d)+str(h.id) not in les_que_hi_ha:
+                print('insertem nova guardia')
                 ng = Guardia(horari=h, absencia=abs, data=d, feina='')
                 ng.save()
-                to_insert[ng.id]={horari: h, id_absencia: abs.id, data: d, feina: ''}
+                to_insert[ng.id]={'id_horari': h.id, 'id_absencia': abs.id, 'data': d, 'feina': ''}
     for g in guardies:
         if not les_que_hi_ha[g.data.strftime("%Y-%m-%d")+str(g.horari_id)]:
-            to_delete.append[g.id]
+            to_delete.append(g.id)
             g.delete()
-    return (to_insert, to_delete)
+    print ('to_insert_fn ', to_insert)
+    print ('to_delete_fn', to_delete)
+    return [to_insert, to_delete]
     
 
 # Obsoletes
