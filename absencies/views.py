@@ -68,12 +68,12 @@ def user(request):
     if request.method == 'POST':
         # creació d'usuari
         # print (' Petició del usuari: ',request.session["user"])
-        put_param = json.loads(request.headers)
+        put_param = json.loads(request.body)
         u = Usuari()
-        u.centre = Centre.objects.filter(id=1)
-        u.login = put_param["name"]
+        u.centre = Centre.objects.get(id=1)
+        u.login = put_param["user"]
         u.email = put_param["email"]
-        u.nom = put_param["name"]
+        u.nom = put_param["user"]
         u.password = put_param["password"]
         u.save()
         resposta = {}
