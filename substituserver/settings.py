@@ -20,23 +20,30 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 IS_HEROKU = "DYNO" in os.environ
 
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# if os.path.isfile('./substituserver/secret/secret_key.txt'):
-#     with open('./substituserver/secret/secret_key.txt') as f:
-#         SECRET_KEY = f.read().strip()
+if os.path.isfile('./substituserver/secret/secret_key.txt'):
+     with open('./substituserver/secret/secret_key.txt') as f:
+         SECRET_KEY = f.read().strip()
 
-SECRET_KEY = os.environ['SECRET_KEY']
+if IS_HEROKU:
+    SECRET_KEY = os.environ['SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
 # PRODUCTION VARIABLES
 
-CSRF_COOKIE_SECURE = False
-SESSION_COOKIE_SECURE = False
-SECURE_SSL_REDIRECT = False
+if IS_HEROKU:
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True
+else:
+    CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_SECURE = False
+    SECURE_SSL_REDIRECT = False
 
 if IS_HEROKU:
     ALLOWED_HOSTS = ['localhost', 'substitueixme.herokuapp.com']
@@ -44,9 +51,11 @@ else:
     ALLOWED_HOSTS = []
 
 if IS_HEROKU:
+    DEBUG = False
+else:
     DEBUG = True
 
-CSRF_TRUSTED_ORIGINS = ['http://localhost:*']
+CSRF_TRUSTED_ORIGINS = ['http://localhost:*','https://localhost:*']
 
 
 # Application definition
@@ -60,6 +69,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'corsheaders',
     'django.contrib.staticfiles',
+    # 'rest_framework',
+    # 'rest_framework_simplejwt',
 ]
 
 MIDDLEWARE = [
@@ -142,6 +153,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
@@ -170,7 +182,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:8000',
-    'http://localhost:8100'
+    'http://localhost:8100',
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -178,5 +190,10 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = [
     'credentials',
     'content-type',
-    'authorization'
 ]
+
+# REST_FRAMEWORK = {
+#     'DEFAULT_AUTHENTICATION_CLASSES': [
+#         'rest_framework_simplejwt.authentication.JWTAuthentication',
+#     ],
+# }

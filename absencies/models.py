@@ -9,10 +9,12 @@ class Centre (models.Model):
         return self.centre
 
 class Usuari (models.Model):
-    centre = models.ForeignKey(Centre, on_delete=models.CASCADE)
+    centre = models.ForeignKey(Centre, on_delete=models.SET_NULL, null=True, blank=True)
+    login = models.CharField(max_length=200, blank=True)
+    email = models.CharField(max_length=200, blank=True)
     nom = models.CharField(max_length=200)
-    password = models.CharField(max_length=200)
-    email = models.CharField(max_length=200)
+    password = models.CharField(max_length=200, blank=True)
+    auth_key = models.CharField(max_length=200, blank=True)
     def __str__(self):
         return self.nom
 
@@ -47,9 +49,9 @@ class Franja_horaria (models.Model):
 class Horari (models.Model):
     usuari = models.ForeignKey(Usuari, on_delete=models.CASCADE)
     hora = models.ForeignKey(Franja_horaria, on_delete=models.CASCADE)
-    espai = models.ForeignKey(Espai, on_delete=models.CASCADE, null=True, blank=True)
-    grup = models.ForeignKey(Grup, on_delete=models.CASCADE, null=True, blank=True)
-    materia = models.ForeignKey(Materia, on_delete=models.CASCADE, null=True, blank=True)
+    espai = models.ForeignKey(Espai, on_delete=models.SET_NULL, null=True, blank=True)
+    grup = models.ForeignKey(Grup, on_delete=models.SET_NULL, null=True, blank=True)
+    materia = models.ForeignKey(Materia, on_delete=models.SET_NULL, null=True, blank=True)
     es_guardia = models.BooleanField("És una guàrdia?")
     def __str__(self):
         return self.usuari.nom+' '+str(self.hora)[:8]
