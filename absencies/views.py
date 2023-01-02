@@ -68,6 +68,7 @@ def user(request):
     if request.method == 'POST':
         # creació d'usuari
         # print (' Petició del usuari: ',request.session["user"])
+        print ('peticio de creacio d usuari: ', request.body)
         put_param = json.loads(request.body)
         u = Usuari()
         u.centre = Centre.objects.get(id=1)
@@ -76,6 +77,7 @@ def user(request):
         u.nom = put_param["user"]
         u.password = put_param["password"]
         u.save()
+        print ('id del nou usuari: ', u.id)
         resposta = {}
         request.session["user"]=u.nom
         request.session["user_id"]=u.id
