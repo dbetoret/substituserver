@@ -16,6 +16,7 @@ def index(request):
 def login(request):
     if request.method == 'GET':
         #print('al principi del get, session es: ',request.session.items())
+        print ('carrega dades mestres lusuari', request.session["user"], ' amb id ', request.session['user_id'])
         return dades_mestres(request)
     # input: usuari
     # output: espais, grups, materies, horari
