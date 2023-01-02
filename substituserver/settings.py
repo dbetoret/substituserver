@@ -180,10 +180,10 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:8000',
-    'http://localhost:8100',
-]
+# CORS_ALLOWED_ORIGINS = [
+#     'http://localhost:8000',
+#     'http://localhost:8100',
+# ]
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -192,6 +192,8 @@ CORS_ALLOW_HEADERS = [
     'content-type',
     'Access-Control-Allow-Origin'
 ]
+
+CORS_ORIGIN_ALLOW_ALL = True
 
 # REST_FRAMEWORK = {
 #     'DEFAULT_AUTHENTICATION_CLASSES': [
