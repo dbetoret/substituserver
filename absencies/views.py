@@ -65,8 +65,6 @@ def login(request):
         return HttpResponseForbidden("Contrasenya incorrecta")  # error no password
     if params["password"] in ["", "undefined"]:
         return HttpResponseForbidden("Contrasenya incorrecta")  # error no password
-    resposta = JsonResponse({'message': 'login OK'}, safe=False)
-    resposta.headers['Authorization'] = generaToken(16)
     try:
         u = Usuari.objects.get(login=params["user"])
         if u.password == params["password"]:
@@ -76,6 +74,9 @@ def login(request):
             request.session.modified = True
             u.auth_key = resposta.headers['Authorization']
             u.save()
+            resposta = JsonResponse({'message': 'login OK','user_id': str(u.id), 'username': str(u.login)}, safe=False)
+            resposta.headers['Authorization'] = generaToken(16)
+            return resposta
             #print("sessió correcta de ", u.login, ' amb id ', u.id)
             #print('al login, el session es: ', request.session.items())
         else:
@@ -84,8 +85,7 @@ def login(request):
     except Usuari.DoesNotExist:
         # l'usuari no existeix.
         return HttpResponseForbidden("L'usuari no existeix")
-    return resposta
-
+    
 @csrf_exempt
 def logout(request):
     #   request.session.clear()
@@ -112,7 +112,7 @@ def user(request):
         print ('id del nou usuari: ', u.id)
         request.session["user"]=u.nom
         request.session["user_id"]=u.id
-        resposta = JsonResponse('Creació correcta', safe=False)
+        resposta = JsonResponse({'message': 'create OK','user_id': str(u.id), 'username': str(u.login)}, safe=False)
         resposta.headers['Authorization'] = u.auth_key
         return resposta
 
