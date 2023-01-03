@@ -107,12 +107,14 @@ def user(request):
         u.email = put_param["email"]
         u.nom = put_param["user"]
         u.password = put_param["password"]
+        u.auth_key = generaToken(16)
         u.save()
         print ('id del nou usuari: ', u.id)
-        resposta = {}
         request.session["user"]=u.nom
         request.session["user_id"]=u.id
-        return JsonResponse(resposta, safe=False)
+        resposta = JsonResponse('Creació correcta', safe=False)
+        resposta.headers['Authorization'] = u.auth_key
+        return resposta
 
 @csrf_exempt
 def insert_usuari(request):
