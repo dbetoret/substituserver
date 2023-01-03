@@ -200,7 +200,7 @@ def getAbsencies(request):
     # output: absencies "propies", guardies "propies" i "del dia"
     ds = ['NO','DI','DM','DC','DJ','DV','DS','DG']
     absencies = []
-    for a in Absencia.objects.filter(usuari_id=request.session['user_id']):
+    for a in Absencia.objects.filter(usuari_id=u):
         classes = []
         for g in Guardia.objects.filter(absencia_id=a.id):
             classes.append( {
@@ -250,10 +250,10 @@ def putAbsencia(request):
     if a_put["id"] == -1:
         a_bd = Absencia()
         a_bd.justificada = False
-        a_bd.usuari_id = request.session['user_id']
+        a_bd.usuari_id = u
     else:
         # por usuario_id + fecha sólo tiene que haber 1 registro.
-        a_bd = Absencia.objects.filter(usuari_id = request.session['user_id'], id = a_put["id"])[0]
+        a_bd = Absencia.objects.filter(usuari_id = u, id = a_put["id"])[0]
     a_bd.data = d_ini
     a_bd.data_fi = d_fi
     if d_ini != a_bd.data and a_bd.data > date.today() and d_ini > date.today():
@@ -283,7 +283,7 @@ def guards(request):
     guardies = []
     if request.method == 'GET':
         ### GUÀRDIES DE L'USUARI PER CAUSA D'UNA ABSÈNCIA
-        for g in Guardia.objects.filter(absencia__usuari_id=request.session['user_id']):
+        for g in Guardia.objects.filter(absencia__usuari_id=u):
             guardies.append({
                 'data': g.data.strftime("%Y-%m-%d"),
                 'dia': str(g.horari.hora.dia_setmana),
@@ -300,7 +300,7 @@ def guards(request):
         ### GUÀRDIES A COBRIR PER L'USUARI
         # hg: hores en les que l'usuari té guàrdia.
         # g: guàrdies del centre que coincideixen amb l'hora de guàrdia hg.
-        for hg in Horari.objects.filter(usuari_id=request.session['user_id'], es_guardia=True):
+        for hg in Horari.objects.filter(usuari_id=u, es_guardia=True):
             #print ("hora de guardia: ")
             for g in Guardia.objects.filter( horari__hora_id=hg.hora_id):
                 #print ("premi. guàrdia el ", g.data.strftime("%Y-%m-%d"), ' a les ',str(hg.hora.hinici))
@@ -430,16 +430,16 @@ def updateHorari(request, id_horari):
     valors = json.loads(request.body)
     #print(valors, ' per al horari ', id_horari)
     try:
-        horari = Horari.objects.get(usuari_id=request.session['user_id'], hora_id=id_horari)
+        horari = Horari.objects.get(usuari_id=u, hora_id=id_horari)
     except Horari.DoesNotExist:
         #print ('L horari ', id_horari, ' no existeix')
         horari = Horari(
-            usuari = Usuari.objects.get(id=request.session['user_id']),
+            usuari = Usuari.objects.get(id=u),
             hora = Franja_horaria.objects.get(id=id_horari)
         )
     except:
         #print ('errors amb horari')
-        return
+        return JsonResponse("Error en actualitzar l'horari", safe=False)
     
     horari.es_guardia = valors['es_guardia']
     if horari.es_guardia == False:
