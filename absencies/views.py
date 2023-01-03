@@ -72,10 +72,10 @@ def login(request):
             request.session["user"] = u.login
             request.session["user_id"] = u.id
             request.session.modified = True
-            u.auth_key = resposta.headers['Authorization']
+            u.auth_key = generaToken(16)
             u.save()
             resposta = JsonResponse({'message': 'login OK','user_id': str(u.id), 'username': str(u.login)}, safe=False)
-            resposta.headers['Authorization'] = generaToken(16)
+            resposta.headers['Authorization'] = u.auth_key
             return resposta
             #print("sessió correcta de ", u.login, ' amb id ', u.id)
             #print('al login, el session es: ', request.session.items())
