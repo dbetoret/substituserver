@@ -190,7 +190,14 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = [
     'credentials',
     'content-type',
-    'Access-Control-Allow-Origin'
+    'Access-Control-Allow-Origin',
+    'Authorization',
+    'observe'
+]
+
+CORS_EXPOSE_HEADERS = [
+    'credentials',
+    'Authorization'
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True

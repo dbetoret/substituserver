@@ -2,11 +2,38 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse, HttpResponseForbidden, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime, timedelta, date
+import string
+import random
 import json
 
 from .models import Usuari, Espai, Grup, Materia, Horari, Absencia, Guardia, Franja_horaria, Centre
 
 # Create your views here.
+
+
+@csrf_exempt
+def checkUser(request):
+    # request.sessió hauria de mantindre des dades de sessió.
+    # No funciona en Heroku, així que implementarem un sistema
+    # de comprovació mitjançant el header Authorization.
+    # Encapsulem en aquesta funció per si volem en algun moment
+    # canviar-ho per el session de nou.
+    # if 'user_id' not in request.session:
+    #     return -1
+    # else:
+    #     return request.session['user_id']
+    if 'Authorization' not in request.headers:
+        return -1
+    try:
+        u = Usuari.objects.get(auth_key=request.headers['Authorization'])
+        return u.id
+    except Usuari.DoesNotExist:
+        return -1 
+
+def generaToken(longitud):
+    caracters = string.ascii_lowercase
+    result = ''.join(random.choice(caracters) for i in range(longitud))
+    return result
 
 @csrf_exempt
 def index(request):
@@ -16,7 +43,7 @@ def index(request):
 def login(request):
     if request.method == 'GET':
         #print('al principi del get, session es: ',request.session.items())
-        print ('carrega dades mestres lusuari', request.session.get("user", 'ningun'), ' amb id ', request.session.get('user_id', -1))
+        #print ('carrega dades mestres lusuari', request.session.get("user", 'ningun'), ' amb id ', request.session.get('user_id', -1))
         return dades_mestres(request)
     # input: usuari
     # output: espais, grups, materies, horari
@@ -38,6 +65,8 @@ def login(request):
         return HttpResponseForbidden("Contrasenya incorrecta")  # error no password
     if params["password"] in ["", "undefined"]:
         return HttpResponseForbidden("Contrasenya incorrecta")  # error no password
+    resposta = JsonResponse({'message': 'login OK'}, safe=False)
+    resposta.headers['Authorization'] = generaToken(16)
     try:
         u = Usuari.objects.get(login=params["user"])
         if u.password == params["password"]:
@@ -45,6 +74,8 @@ def login(request):
             request.session["user"] = u.login
             request.session["user_id"] = u.id
             request.session.modified = True
+            u.auth_key = resposta.headers['Authorization']
+            u.save()
             #print("sessió correcta de ", u.login, ' amb id ', u.id)
             #print('al login, el session es: ', request.session.items())
         else:
@@ -53,8 +84,7 @@ def login(request):
     except Usuari.DoesNotExist:
         # l'usuari no existeix.
         return HttpResponseForbidden("L'usuari no existeix")
-
-    return JsonResponse({}, safe=False)
+    return resposta
 
 @csrf_exempt
 def logout(request):
@@ -91,12 +121,13 @@ def insert_usuari(request):
 @csrf_exempt
 def dades_mestres(request):
     #print ('en carregar dades mestres, req.session es: ', request.session.items())
-    if 'user_id' not in request.session:
+    u = checkUser(request)
+    if u == -1:
         return HttpResponseForbidden('user not logged in')
     #print (' Petició del usuari: ',request.session['user_id'])
     #put_param = json.loads(request.body)
     # u = Usuari.objects.get(email=request.GET["user"])
-    u = Usuari.objects.get(id=request.session["user_id"])
+    u = Usuari.objects.get(id=u)
     if 0: # put_param["password"] != u.password:
         #print ("no")
         return False
@@ -147,7 +178,8 @@ def dades_mestres(request):
 
 @csrf_exempt
 def Absencies(request):
-    if 'user_id' not in request.session:
+    u = checkUser(request)
+    if u == -1:
         return HttpResponseForbidden('user not logged in')
     #print (' Petició del usuari: ',request.session['user_id'])
     #print(request.method)
@@ -158,8 +190,9 @@ def Absencies(request):
 
 @csrf_exempt
 def getAbsencies(request):
-    if 'user_id' not in request.session:
-                return HttpResponseForbidden('user not logged in')
+    u = checkUser(request)
+    if u == -1:
+        return HttpResponseForbidden('user not logged in')
     #print (' Petició del usuari: ',request.session['user_id'])
     # input: usuari
     # output: absencies "propies", guardies "propies" i "del dia"
@@ -204,7 +237,8 @@ def getAbsencies(request):
 
 @csrf_exempt
 def putAbsencia(request):
-    if 'user_id' not in request.session:
+    u = checkUser(request)
+    if u == -1:
         return HttpResponseForbidden('user not logged in')
     #print (' Petició del usuari: ',request.session['user_id'])
     a_put = json.loads(request.body)
@@ -240,7 +274,8 @@ def putAbsencia(request):
 
 @csrf_exempt
 def guards(request):
-    if 'user_id' not in request.session:
+    u = checkUser(request)
+    if u == -1:
         return HttpResponseForbidden('user not logged in')
     #print (' Petició de guardies del usuari: ',request.session['user_id'], ' per ', request.method)
     guardies = []
@@ -296,7 +331,8 @@ def guards_by_date(request):
 
 @csrf_exempt
 def updateGrups(request):
-    if 'user_id' not in request.session:
+    u = checkUser(request)
+    if u == -1:
         return HttpResponseForbidden('user not logged in')
     #print (' Petició del usuari: ',request.session['user_id'])
     gput = json.loads(request.body)
@@ -325,7 +361,8 @@ def updateGrups(request):
 
 @csrf_exempt
 def updateEspais(request):
-    if 'user_id' not in request.session:
+    u = checkUser(request)
+    if u == -1:
         return HttpResponseForbidden('user not logged in')
     #print (' Petició despais del usuari: ',request.session['user_id'])
     vput = json.loads(request.body)
@@ -354,7 +391,8 @@ def updateEspais(request):
 
 @csrf_exempt
 def updateMateries(request):
-    if 'user_id' not in request.session:
+    u = checkUser(request)
+    if u == -1:
         return HttpResponseForbidden('user not logged in')
     #print (' Petició del usuari: ',request.session['user_id'])
     vput = json.loads(request.body)
@@ -383,7 +421,8 @@ def updateMateries(request):
 
 @csrf_exempt
 def updateHorari(request, id_horari):
-    if 'user_id' not in request.session:
+    u = checkUser(request)
+    if u == -1:
         return HttpResponseForbidden('user not logged in')
     #print (' Petició del usuari: ',request.session['user_id'])
     valors = json.loads(request.body)
@@ -417,7 +456,8 @@ def updateHorari(request, id_horari):
 
 
 def edit(request):
-    if 'user_id' not in request.session:
+    u = checkUser(request)
+    if u == -1:
         return HttpResponseForbidden('user not logged in')
     #print (' Petició del usuari: ',request.session['user_id'])
     # tipus: inserció, modificació, esborrat
