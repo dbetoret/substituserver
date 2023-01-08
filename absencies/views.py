@@ -189,6 +189,8 @@ def Absencies(request):
         return getAbsencies(request)
     if request.method == 'POST' or request.method == 'PUT':
         return putAbsencia(request)
+    if request.method == 'DELETE':
+        return deleteAbsencia(request)
 
 @csrf_exempt
 def getAbsencies(request):
@@ -274,6 +276,27 @@ def putAbsencia(request):
 
     return JsonResponse({'id': a_bd.id, 'to_insert': to_insert, 'to_delete': to_delete }, safe=False, content_type='application/json')
 
+# @csrf_exempt
+# def deleteAbsencia(request):
+#     print ('arriba a deleteAbsencia sense id')
+#     return JsonResponse({'error': "Quina absència vols esborrar?"})
+
+@csrf_exempt
+def deleteAbsencia(request, id_absencia):
+    print ('arriba a deleteAbsencia')
+    if request.method != 'DELETE':
+        return JsonResponse({'error': "En passar el id, únicament està disponible l'esborrat de l'absència"})
+    else:
+        u = checkUser(request)
+        if u == -1:
+            return HttpResponseForbidden('user not logged in')
+        print ('vull esborrar la absencia ', id_absencia)
+        a_bd = Absencia.objects.get(id=id_absencia)
+        a_bd.delete()
+        return JsonResponse({'result': "S'ha esborrat l'absència."})
+        # com que la relació amb guàrdies fa un delele en cascada, no cal fer res més.
+
+
 @csrf_exempt
 def guards(request):
     u = checkUser(request)
@@ -285,6 +308,8 @@ def guards(request):
         ### GUÀRDIES DE L'USUARI PER CAUSA D'UNA ABSÈNCIA
         for g in Guardia.objects.filter(absencia__usuari_id=u):
             guardies.append({
+                'id': g.id,
+                'id_absencia': g.absencia_id,
                 'data': g.data.strftime("%Y-%m-%d"),
                 'dia': str(g.horari.hora.dia_setmana),
                 'hora': str(g.horari.hora.hinici),
@@ -305,6 +330,8 @@ def guards(request):
             for g in Guardia.objects.filter( horari__hora_id=hg.hora_id):
                 #print ("premi. guàrdia el ", g.data.strftime("%Y-%m-%d"), ' a les ',str(hg.hora.hinici))
                 guardies.append( {
+                    'id': g.id,
+                    'id_absencia': -1,
                     'data': g.data.strftime("%Y-%m-%d"),
                     'dia': str(hg.hora.dia_setmana),
                     'hora': str(hg.hora.hinici),
@@ -317,10 +344,18 @@ def guards(request):
                     'substitut': g.substitut,
                     'feina': g.feina
                 } )
+        return JsonResponse(guardies, safe=False)
+    elif request.method == 'POST':
+        # és una inserció de tasques.
+        params = json.loads(request.body)
+        g = Guardia.objects.get(id=params["guard_id"])
+        g.feina = params["tasks"]
+        g.save()
+        return JsonResponse({'result': 'ok'})
     else:
         pass
     #print('vaig a retornar guardies ',guardies)
-    return JsonResponse(guardies, safe=False)
+    
 
 def guards_by_id(request):
     # Permet carregar les guàrdies d'una absència determinada.
@@ -470,7 +505,7 @@ def edit(request):
     
     return JsonResponse()
 
-def inserta_absència(usuari ):
+def inserta_absencia(usuari ):
     # Comprova l'horari de l'usuari.
     # Comprova els dies de la setmana de l'absència.
     # Inserta totes les guàrdies corresponents
@@ -497,7 +532,9 @@ def inserta_guardies(abs_id):
         #print ('dia ', d)
         for h in Horari.objects.filter(hora__dia_setmana=dies_setmana[d.weekday()], usuari=abs.usuari, es_guardia=False ):
             #print ('horari: ', h)
-            if str(d)+str(h.id) not in les_que_hi_ha:
+            if str(d)+str(h.id) in les_que_hi_ha:
+                les_que_hi_ha[str(d)+str(h.id)] = True
+            else:
                 #print('insertem nova guardia')
                 ng = Guardia(horari=h, absencia=abs, data=d, feina='')
                 ng.save()
